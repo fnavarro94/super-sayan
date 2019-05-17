@@ -72,7 +72,7 @@ class UncertaintyParser(object):
 					un_p.append(float(vecLine[i*3+4]))
 					un_m.append(float(vecLine[i*3+5]))
 		    
-			secondBinsNorm_temp = (np.array(secondBins_temp) - secondBins_temp[0])/(secondBins_temp[len(secondBins_temp)-1]) + n
+			secondBinsNorm_temp = (np.array(secondBins_temp) - secondBins_temp[0])/(secondBins_temp[len(secondBins_temp)-1]) + n-1
 			secondBinsNorm_vec.append(secondBinsNorm_temp)
 			secondBins_vec.append(secondBins_temp)
 			uncertainty_plus.append(un_p)
@@ -82,8 +82,8 @@ class UncertaintyParser(object):
 		
 		self.secondBins = np.array(secondBins_vec)
 		self.secondBinsNorm = np.array(secondBinsNorm_vec)
-		self.uncertaintyP = uncertainty_plus
-		self.uncertaintyM = uncertainty_minus
+		self.uncertaintyP = np.array(uncertainty_plus).flatten()
+		self.uncertaintyM = np.array(uncertainty_minus).flatten()
 		self.nBinParams = num_binParams
 		self.nFuncParams = num_funcParams
 		self.binParams  = binParameters   
@@ -92,39 +92,44 @@ class UncertaintyParser(object):
 		self.allParams = allParams
 		
 	
-	def evalFirstIndex(self, binParam):
-		
+	def evalFirstIndex(self, param1):
+		print(param1)
+		evalParam1_temp = np.maximum(param1,self.bins[0])
+		print(evalParam1_temp)
+		evalParam1 = np.minimum(evalParam1_temp,self.bins[len(self.bins)-1]-0.1)
+		print(evalParam1)
 		bins = self.bins
-		index = np.searchsorted(bins,binParam, side='right')-1
-		for i in range(len(index)):
-			continue
+		index = np.searchsorted(bins,evalParam1, side='right')-1
+		
 		
 		return index
 		
 	def evalSecondIndex(self, binParam1,binParam2):
 		bin1  = self.evalFirstIndex(binParam1)
-		func = lambda min_,max_,bin1,param2: bin1 +(param2-min_)/(max_)
-	
+		bin2 = self.secondBinsNorm.flatten()
+		func = lambda min_,max_,bin1_,param2: bin1_ +(param2-min_)/(max_)
+		minBin = self.secondBins[bin1][:,0]
+		maxBin = self.secondBins[bin1][:,len(self.secondBins)-1]
+		
+		binParamNorm = func(minBin,maxBin,bin1,binParam2)
+		secondIndex = np.maximum(secondIndex,bin1)
+		secondIndex = np.minimum(secondIndex,bin1+0.999)
+		secondIndex = np.searchsorted(bin2,binParamNorm, side='right')-1
+		
+		return secondIndex
 	
 		
-	def evalUncertainty(self, *parameters):
-		index = self.evalIndex(parameters[0])
-		evalVars = []
-		for n, var in enumerate(parameters):
-			if n != 0:
-				# clamping the function paramterer values to the minimums and maximums defined in correction txt file
-				evalVars_temp = np.maximum(np.array(parameters[n]),self.funcParamLimits[self.funcParams[n-1]][0][index])
-				evalVars.append(np.minimum(evalVars_temp,self.funcParamLimits[self.funcParams[n-1]][1][index]))
-				self.a =  np.array(parameters[n])
-				self.b=self.funcParamLimits[self.funcParams[n-1]][0][index]
-					
-		for n, var in enumerate(self.tableFuncParams):
-			evalVars.append(self.tableFuncParamValues[self.tableFuncParams[n]][index])
-			
-		self.vars=evalVars
+	def evalUncertainty(self, param1, param2):
 		
-		result = self.function(*tuple(evalVars))
-		return result
+		
+		
+		index1 = self.evalFirstIndex(param1)
+		index2 = self.evalSecondIndex(param1, param2)
+		
+		uncert = self.uncertaintyP[index2]
+		
+		return uncert
+		
 			
 		
 	
