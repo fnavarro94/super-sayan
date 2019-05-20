@@ -37,9 +37,9 @@ class JetRecalibrator_saiyan:
         #Step3 (Construct a FactorizedJetCorrector object) 
         self.JetCorrector = ROOT.FactorizedJetCorrector(self.vPar)
         if os.path.exists("%s/%s_Uncertainty_%s.txt" % (path,globalTag,jetFlavour)):
-            self.JetUncertainty = ROOT.JetCorrectionUncertainty("%s/%s_Uncertainty_%s.txt" % (path,globalTag,jetFlavour));
+            self.JetUncertainty = UncertaintyParser("%s/%s_Uncertainty_%s.txt" % (path,globalTag,jetFlavour));
         elif os.path.exists("%s/Uncertainty_FAKE.txt" % path):
-            self.JetUncertainty = ROOT.JetCorrectionUncertainty("%s/Uncertainty_FAKE.txt" % path);
+            self.JetUncertainty = UncertaintyParser("%s/Uncertainty_FAKE.txt" % path);
         else:
             print 'Missing JEC uncertainty file "%s/%s_Uncertainty_%s.txt", so jet energy uncertainties will not be available' % (path,globalTag,jetFlavour)
             self.JetUncertainty = None
