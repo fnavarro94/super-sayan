@@ -9,7 +9,7 @@ from JetReCalibrator_saiyan import *
 from awkward import JaggedArray, Table
 
 
-JRC = JetRecalibrator_saiyan("Jec10V","AK5PF",True,"/home/felipe/super_sayan/super-sayan/super_saiyan/helpers/data")
+JRC = JetReCalibratorSaiyan("Jec10V","AK5PF",True,"/home/felipe/super_sayan/super-sayan/super_saiyan/helpers/data",calculateType1METCorrection=True,calculateSeparateCorrections=True)
 
   
 
